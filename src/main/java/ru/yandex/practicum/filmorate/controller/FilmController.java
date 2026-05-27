@@ -1,8 +1,8 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.ErrorCode;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -13,9 +13,11 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/films")
+@Slf4j
 public class FilmController {
     private static final LocalDate EARLIEST_RELEASE_DATE = LocalDate.of(1895, 12, 28);
-    private static final Logger log = LoggerFactory.getLogger(FilmController.class);
+    private static final int MAX_DESCRIPTION_LENGTH = 200;
+    private long currentMaxId = 0;
     private final Map<Long, Film> films = new HashMap<>();
 
     @GetMapping
@@ -36,7 +38,7 @@ public class FilmController {
     @PutMapping
     public Film updateFilm(@RequestBody Film film) {
         if (film.getId() == null) {
-            throw new ValidationException("Film id cannot be null");
+            throw new ValidationException(ErrorCode.EMPTY_FILM_ID, "Film id cannot be null");
         }
         if (!films.containsKey(film.getId())) {
             throw new NotFoundException("Film not found");
@@ -50,32 +52,27 @@ public class FilmController {
     private void validateFilm(Film film) {
         if (film == null) {
             log.warn("Film validation failed: request body is empty");
-            throw new ValidationException("Film cannot be empty");
+            throw new ValidationException(ErrorCode.EMPTY_FILM, "Film cannot be empty");
         }
         if (film.getName() == null || film.getName().isBlank()) {
             log.warn("Film validation failed: name is empty");
-            throw new ValidationException("Film name cannot be empty");
+            throw new ValidationException(ErrorCode.EMPTY_FILM_NAME, "Film name cannot be empty");
         }
-        if (film.getDescription() != null && film.getDescription().length() > 200) {
+        if (film.getDescription() != null && film.getDescription().length() > MAX_DESCRIPTION_LENGTH) {
             log.warn("Film validation failed: description is longer than 200 characters");
-            throw new ValidationException("Maximum length of 200 characters");
+            throw new ValidationException(ErrorCode.TOO_LONG_FILM_DESCRIPTION, "Maximum length of 200 characters");
         }
         if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(EARLIEST_RELEASE_DATE)) {
             log.warn("Film validation failed: release date is before {}", EARLIEST_RELEASE_DATE);
-            throw new ValidationException("Film release date cannot be before 28.12.1895");
+            throw new ValidationException(ErrorCode.INVALID_FILM_RELEASE_DATE, "Film release date cannot be before 28.12.1895");
         }
         if (film.getDuration() <= 0) {
             log.warn("Film validation failed: duration is not positive");
-            throw new ValidationException("Film duration must be positive");
+            throw new ValidationException(ErrorCode.NON_POSITIVE_FILM_DURATION, "Film duration must be positive");
         }
     }
 
     private long getNextId() {
-        long currentMaxId = films.keySet()
-                .stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
         return ++currentMaxId;
     }
 }

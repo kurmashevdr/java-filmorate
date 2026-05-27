@@ -1,0 +1,15 @@
+package ru.yandex.practicum.filmorate.exception;
+
+public enum ErrorCode {
+    EMPTY_FILM,
+    EMPTY_FILM_NAME,
+    TOO_LONG_FILM_DESCRIPTION,
+    INVALID_FILM_RELEASE_DATE,
+    NON_POSITIVE_FILM_DURATION,
+    EMPTY_FILM_ID,
+    EMPTY_USER,
+    INVALID_USER_EMAIL,
+    INVALID_USER_LOGIN,
+    INVALID_USER_BIRTHDAY,
+    EMPTY_USER_ID
+}

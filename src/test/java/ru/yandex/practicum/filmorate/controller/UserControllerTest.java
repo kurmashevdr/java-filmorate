@@ -2,11 +2,12 @@ package ru.yandex.practicum.filmorate.controller;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.filmorate.exception.ErrorCode;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import java.time.LocalDate;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 class UserControllerTest {
     private UserController controller;
@@ -28,55 +29,55 @@ class UserControllerTest {
     @Test
     void shouldRejectEmptyEmail() {
         User user = new User(null, " ", "login", "Name", LocalDate.of(2000, 1, 1));
-        assertThatThrownBy(() -> controller.createUser(user))
-                .isInstanceOf(ValidationException.class)
-                .hasMessage("Email must contain @");
+        assertThatExceptionOfType(ValidationException.class)
+                .isThrownBy(() -> controller.createUser(user))
+                .satisfies(exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_USER_EMAIL));
     }
 
     @Test
     void shouldRejectInvalidEmail() {
         User user = new User(null, "mail.ru", "login", "Name", LocalDate.of(2000, 1, 1));
-        assertThatThrownBy(() -> controller.createUser(user))
-                .isInstanceOf(ValidationException.class)
-                .hasMessage("Email must contain @");
+        assertThatExceptionOfType(ValidationException.class)
+                .isThrownBy(() -> controller.createUser(user))
+                .satisfies(exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_USER_EMAIL));
     }
 
     @Test
     void shouldRejectEmptyLogin() {
         User user = new User(null, "user@mail.ru", " ", "Name", LocalDate.of(2000, 1, 1));
-        assertThatThrownBy(() -> controller.createUser(user))
-                .isInstanceOf(ValidationException.class)
-                .hasMessage("Login must not be blank and must not contain spaces");
+        assertThatExceptionOfType(ValidationException.class)
+                .isThrownBy(() -> controller.createUser(user))
+                .satisfies(exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_USER_LOGIN));
     }
 
     @Test
     void shouldRejectLoginWithWhitespace() {
         User user = new User(null, "user@mail.ru", "lo gin", "Name", LocalDate.of(2000, 1, 1));
-        assertThatThrownBy(() -> controller.createUser(user))
-                .isInstanceOf(ValidationException.class)
-                .hasMessage("Login must not be blank and must not contain spaces");
+        assertThatExceptionOfType(ValidationException.class)
+                .isThrownBy(() -> controller.createUser(user))
+                .satisfies(exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_USER_LOGIN));
     }
 
     @Test
     void shouldRejectFutureBirthday() {
         User user = new User(null, "user@mail.ru", "login", "Name", LocalDate.now().plusDays(1));
-        assertThatThrownBy(() -> controller.createUser(user))
-                .isInstanceOf(ValidationException.class)
-                .hasMessage("Birthday must not be in the future");
+        assertThatExceptionOfType(ValidationException.class)
+                .isThrownBy(() -> controller.createUser(user))
+                .satisfies(exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_USER_BIRTHDAY));
     }
 
     @Test
     void shouldRejectEmptyUser() {
-        assertThatThrownBy(() -> controller.createUser(null))
-                .isInstanceOf(ValidationException.class)
-                .hasMessage("User cannot be empty");
+        assertThatExceptionOfType(ValidationException.class)
+                .isThrownBy(() -> controller.createUser(null))
+                .satisfies(exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.EMPTY_USER));
     }
 
     @Test
     void shouldRejectUserWithEmptyFields() {
         User user = new User();
-        assertThatThrownBy(() -> controller.createUser(user))
-                .isInstanceOf(ValidationException.class)
-                .hasMessage("Email must contain @");
+        assertThatExceptionOfType(ValidationException.class)
+                .isThrownBy(() -> controller.createUser(user))
+                .satisfies(exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_USER_EMAIL));
     }
 }

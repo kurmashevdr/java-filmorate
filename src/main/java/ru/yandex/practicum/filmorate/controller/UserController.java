@@ -1,9 +1,9 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.ErrorCode;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -14,9 +14,10 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
+@Slf4j
 public class UserController {
-    private static final Logger log = LoggerFactory.getLogger(UserController.class);
     private final Map<Long, User> users = new HashMap<>();
+    private long currentMaxId = 0;
 
     @GetMapping
     public Collection<User> getUsers() {
@@ -36,7 +37,7 @@ public class UserController {
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
         if (user.getId() == null) {
-            throw new ValidationException("Id must not be null");
+            throw new ValidationException(ErrorCode.EMPTY_USER_ID, "Id must not be null");
         }
         if (!users.containsKey(user.getId())) {
             throw new NotFoundException("User not found");
@@ -50,15 +51,15 @@ public class UserController {
     private void validateUser(User user) {
         if (user == null) {
             log.warn("User validation failed: request body is empty");
-            throw new ValidationException("User cannot be empty");
+            throw new ValidationException(ErrorCode.EMPTY_USER, "User cannot be empty");
         }
         if (user.getEmail() == null || user.getEmail().isBlank() || !user.getEmail().contains("@")) {
             log.warn("User validation failed: email is empty or invalid");
-            throw new ValidationException("Email must contain @");
+            throw new ValidationException(ErrorCode.INVALID_USER_EMAIL, "Email must contain @");
         }
         if (user.getLogin() == null || user.getLogin().isBlank() || user.getLogin().contains(" ")) {
             log.warn("User validation failed: login is empty or contains whitespace");
-            throw new ValidationException("Login must not be blank and must not contain spaces");
+            throw new ValidationException(ErrorCode.INVALID_USER_LOGIN, "Login must not be blank and must not contain spaces");
         }
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
@@ -66,16 +67,11 @@ public class UserController {
         }
         if (user.getBirthday() == null || user.getBirthday().isAfter(LocalDate.now())) {
             log.warn("User validation failed: birthday is empty or in the future");
-            throw new ValidationException("Birthday must not be in the future");
+            throw new ValidationException(ErrorCode.INVALID_USER_BIRTHDAY, "Birthday must not be in the future");
         }
     }
 
     private long getNextId() {
-        long currentMaxId = users.keySet()
-                .stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
         return ++currentMaxId;
     }
 }
