@@ -14,6 +14,7 @@ public class Film {
     private String description;
     private LocalDate releaseDate;
     private int duration;
+    private int likesCount;
 
     public Film(Long id, String name, String description, LocalDate releaseDate, int duration) {
         this.id = id;
@@ -21,5 +22,6 @@ public class Film {
         this.description = description;
         this.releaseDate = releaseDate;
         this.duration = duration;
+        this.likesCount = 0;
     }
 }
