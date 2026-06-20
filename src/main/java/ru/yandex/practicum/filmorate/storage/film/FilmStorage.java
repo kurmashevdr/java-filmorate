@@ -13,4 +13,7 @@ public interface FilmStorage {
     Collection<Film> getPopularFilms(Integer count);
     Integer getFilmCount();
     Boolean isFilmExists(Long id);
+    Boolean isFilmLikedByUser(Long filmId, Long userId);
+    void likeFilm(Long filmId, Long userId);
+    void dislikeFilm(Long filmId, Long userId);
 }

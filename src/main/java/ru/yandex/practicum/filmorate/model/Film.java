@@ -4,6 +4,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -14,7 +16,7 @@ public class Film {
     private String description;
     private LocalDate releaseDate;
     private int duration;
-    private int likesCount;
+    private Set<Long> likesByUsers = new HashSet<>();
 
     public Film(Long id, String name, String description, LocalDate releaseDate, int duration) {
         this.id = id;
@@ -22,6 +24,17 @@ public class Film {
         this.description = description;
         this.releaseDate = releaseDate;
         this.duration = duration;
-        this.likesCount = 0;
+    }
+
+    public void addLike(Long userId) {
+        likesByUsers.add(userId);
+    }
+
+    public void removeLike(Long userId) {
+        likesByUsers.remove(userId);
+    }
+
+    public int getLikesCount() {
+        return likesByUsers.size();
     }
 }

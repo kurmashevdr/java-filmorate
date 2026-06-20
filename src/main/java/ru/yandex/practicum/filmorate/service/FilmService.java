@@ -1,30 +1,43 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ErrorCode;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import java.time.LocalDate;
 import java.util.Collection;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class FilmService {
     private static final LocalDate EARLIEST_RELEASE_DATE = LocalDate.of(1895, 12, 28);
     private static final int MAX_DESCRIPTION_LENGTH = 200;
-    private FilmStorage filmStorage;
+    private final FilmStorage filmStorage;
+    private final UserStorage userStorage;
 
     public Collection<Film> getFilms() {
         log.info("Requested all films. Total films: {}", filmStorage.getFilmCount());
         return filmStorage.getFilms();
     }
 
+    public Film getFilm(Long id) {
+        Film film = filmStorage.getFilm(id);
+        if (film == null) {
+            throw new NotFoundException("Film not found");
+        }
+        log.info("Requested film with id={}", id);
+        return film;
+    }
+
     public Film createFilm(Film film) {
         validateFilm(film);
-        film.setId(filmStorage.getNextId());
         filmStorage.createFilm(film);
         log.info("Created film with id={}", film.getId());
         return film;
@@ -43,6 +56,42 @@ public class FilmService {
         return film;
     }
 
+    public void likeFilm(Long filmId, Long userId) {
+        Film film = filmStorage.getFilm(filmId);
+        User user = userStorage.getUser(userId);
+        if (film == null) {
+            throw new NotFoundException("Film not found");
+        }
+        if (user == null) {
+            throw new NotFoundException("User not found");
+        }
+        if (filmStorage.isFilmLikedByUser(filmId, userId)) {
+            log.warn("Film already liked by user with id={}", userId);
+            return;
+        }
+        filmStorage.likeFilm(filmId, userId);
+    }
+
+    public void dislikeFilm(Long filmId, Long userId) {
+        Film film = filmStorage.getFilm(filmId);
+        User user = userStorage.getUser(userId);
+        if (film == null) {
+            throw new NotFoundException("Film not found");
+        }
+        if (user == null) {
+            throw new NotFoundException("User not found");
+        }
+        if (!filmStorage.isFilmLikedByUser(filmId, userId)) {
+            log.warn("Film is not liked by user with id={}", userId);
+            return;
+        }
+        filmStorage.dislikeFilm(filmId, userId);
+    }
+
+    public Collection<Film> getPopularFilms(int count) {
+        return filmStorage.getPopularFilms(count);
+    }
+
     private void validateFilm(Film film) {
         if (film == null) {
             log.warn("Film validation failed: request body is empty");
@@ -58,7 +107,8 @@ public class FilmService {
         }
         if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(EARLIEST_RELEASE_DATE)) {
             log.warn("Film validation failed: release date is before {}", EARLIEST_RELEASE_DATE);
-            throw new ValidationException(ErrorCode.INVALID_FILM_RELEASE_DATE, "Film release date cannot be before 28.12.1895");
+            throw new ValidationException(ErrorCode.INVALID_FILM_RELEASE_DATE, "Film release date cannot be before " +
+                    "28.12.1895");
         }
         if (film.getDuration() <= 0) {
             log.warn("Film validation failed: duration is not positive");

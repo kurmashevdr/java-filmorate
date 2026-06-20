@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ErrorCode;
@@ -7,18 +8,27 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
-
 import java.time.LocalDate;
 import java.util.Collection;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class UserService {
-        private UserStorage users;
+        private final UserStorage users;
 
         public Collection<User> getUsers() {
             log.info("Requested all users. Total users: {}", users.getUserCount());
             return users.getUsers();
+        }
+
+        public User getUser(Long id) {
+            User user = users.getUser(id);
+            if (user == null) {
+                throw new NotFoundException("User not found");
+            }
+            log.info("Requested user with id={}", id);
+            return user;
         }
 
         public User createUser(User user) {
@@ -42,6 +52,48 @@ public class UserService {
             return user;
         }
 
+        public void addFriend(Long id, Long friendId) {
+            User user = users.getUser(id);
+            User friend = users.getUser(friendId);
+            if (user == null || friend == null) {
+                throw new NotFoundException("User not found");
+            }
+            if (user.getFriends().contains(friendId)) {
+                throw new ValidationException(ErrorCode.USER_ALREADY_FRIEND, "User is already friend");
+            }
+            users.addFriend(id, friendId);
+            log.info("Added friend with id={} to user with id={}", friendId, id);
+        }
+
+        public void removeFriend(Long id, Long friendId) {
+            User user = users.getUser(id);
+            User friend = users.getUser(friendId);
+            if (user == null || friend == null) {
+                throw new NotFoundException("User not found");
+            }
+            users.removeFriend(id, friendId);
+            log.info("Removed friend with id={} from user with id={}", friendId, id);
+        }
+
+        public Collection<User> getFriends(Long id) {
+            User user = users.getUser(id);
+            if (user == null) {
+                throw new NotFoundException("User not found");
+            }
+            log.info("Requested friends for user with id={}", id);
+            return users.getFriends(id);
+        }
+
+        public Collection<User> getCommonFriends(Long id, Long otherId) {
+            User user = users.getUser(id);
+            User otherUser = users.getUser(otherId);
+            if (user == null || otherUser == null) {
+                throw new NotFoundException("User not found");
+            }
+            log.info("Requested common friends for user with id={} and user with id={}", id, otherId);
+            return users.getCommonFriends(id, otherId);
+        }
+
         private void validateUser(User user) {
             if (user == null) {
                 log.warn("User validation failed: request body is empty");
@@ -53,7 +105,8 @@ public class UserService {
             }
             if (user.getLogin() == null || user.getLogin().isBlank() || user.getLogin().contains(" ")) {
                 log.warn("User validation failed: login is empty or contains whitespace");
-                throw new ValidationException(ErrorCode.INVALID_USER_LOGIN, "Login must not be blank and must not contain spaces");
+                throw new ValidationException(ErrorCode.INVALID_USER_LOGIN, "Login must not be blank and must not " +
+                        "contain spaces");
             }
             if (user.getName() == null || user.getName().isBlank()) {
                 user.setName(user.getLogin());

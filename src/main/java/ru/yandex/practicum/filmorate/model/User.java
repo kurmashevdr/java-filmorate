@@ -6,9 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Data
 @NoArgsConstructor
@@ -21,8 +19,7 @@ public class User {
     private String login;
     private String name;
     private LocalDate birthday;
-    private Map<Long, User> friends = new HashMap<>();
-    private Map<Long, Film> likedFilms = new HashMap<>();
+    private Set<Long> friends = new LinkedHashSet<>();
 
     public User(Long id, String email, String login, String name, LocalDate birthday) {
         this.id = id;
@@ -32,23 +29,11 @@ public class User {
         this.birthday = birthday;
     }
 
-    public void addFriend(User friend) {
-        friends.put(friend.getId(), friend);
+    public void addFriend(Long friendId) {
+        friends.add(friendId);
     }
 
-    public void removeFriend(User friend) {
-        friends.remove(friend.getId());
-    }
-
-    public Collection<User> getFriends() {
-        return friends.values();
-    }
-
-    public void likeFilm(Film film) {
-        likedFilms.put(film.getId(), film);
-    }
-
-    public void unlikeFilm(Long filmId) {
-        likedFilms.remove(filmId);
+    public void removeFriend(Long friendId) {
+        friends.remove(friendId);
     }
 }
