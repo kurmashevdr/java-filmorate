@@ -11,8 +11,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     private long currentMaxId = 0;
     private final Map<Long, Film> films = new HashMap<>();
 
-    @Override
-    public Long getNextId() {
+    private Long getNextId() {
         return ++currentMaxId;
     }
 

@@ -176,7 +176,6 @@ class FilmControllerTest {
 
     private User createUser(String email, String login) {
         User user = new User(null, email, login, login, LocalDate.of(2000, 1, 1));
-        user.setId(userStorage.getNextId());
         return userStorage.createUser(user);
     }
 }
