@@ -5,8 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDate;
+import java.util.*;
 
 @Data
 @NoArgsConstructor
@@ -19,6 +19,7 @@ public class User {
     private String login;
     private String name;
     private LocalDate birthday;
+    private Set<Long> friends = new LinkedHashSet<>();
 
     public User(Long id, String email, String login, String name, LocalDate birthday) {
         this.id = id;
@@ -26,5 +27,13 @@ public class User {
         this.login = login;
         this.name = name;
         this.birthday = birthday;
+    }
+
+    public void addFriend(Long friendId) {
+        friends.add(friendId);
+    }
+
+    public void removeFriend(Long friendId) {
+        friends.remove(friendId);
     }
 }

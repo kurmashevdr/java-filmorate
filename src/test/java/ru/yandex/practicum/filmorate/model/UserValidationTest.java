@@ -21,22 +21,27 @@ class UserValidationTest {
 
     @Test
     void shouldAcceptCorrectEmail() {
-        User user = new User(null, "user@mail.ru", "login", "Name", LocalDate.of(2000, 1, 1));
+        User user = new User(null, "user@mail.ru", "login", "Name",
+                LocalDate.of(2000, 1, 1));
         Set<ConstraintViolation<User>> violations = validator.validate(user);
         assertThat(violations).isEmpty();
     }
 
     @Test
     void shouldRejectEmailWithoutAtSign() {
-        User user = new User(null, "mail.ru", "login", "Name", LocalDate.of(2000, 1, 1));
+        User user = new User(null, "mail.ru", "login", "Name",
+                LocalDate.of(2000, 1, 1));
         Set<ConstraintViolation<User>> violations = validator.validate(user);
-        assertThat(violations).anyMatch(violation -> violation.getPropertyPath().toString().equals("email"));
+        assertThat(violations).anyMatch(violation -> violation.getPropertyPath().toString()
+                .equals("email"));
     }
 
     @Test
     void shouldRejectEmptyEmail() {
-        User user = new User(null, "", "login", "Name", LocalDate.of(2000, 1, 1));
+        User user = new User(null, "", "login", "Name",
+                LocalDate.of(2000, 1, 1));
         Set<ConstraintViolation<User>> violations = validator.validate(user);
-        assertThat(violations).anyMatch(violation -> violation.getPropertyPath().toString().equals("email"));
+        assertThat(violations).anyMatch(violation -> violation.getPropertyPath().toString()
+                .equals("email"));
     }
 }
