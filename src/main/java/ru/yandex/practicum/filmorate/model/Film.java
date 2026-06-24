@@ -17,13 +17,16 @@ public class Film {
     private LocalDate releaseDate;
     private int duration;
     private Set<Long> likesByUsers = new HashSet<>();
+    private MpaRating mpaRating;
+    private Set<Genre> genres = new HashSet<>();
 
-    public Film(Long id, String name, String description, LocalDate releaseDate, int duration) {
+    public Film(Long id, String name, String description, LocalDate releaseDate, int duration, MpaRating mpaRating) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.releaseDate = releaseDate;
         this.duration = duration;
+        this.mpaRating = mpaRating;
     }
 
     public void addLike(Long userId) {
@@ -36,5 +39,13 @@ public class Film {
 
     public int getLikesCount() {
         return likesByUsers.size();
+    }
+
+    public void addGenre(Genre genre) {
+        genres.add(genre);
+    }
+
+    public void removeGenre(Genre genre) {
+        genres.remove(genre);
     }
 }
